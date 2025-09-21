@@ -1,5 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useApodDates } from '../../composables/useApodData'
+import { nasaApiService } from '../../services/nasa-api'
 
 const currentDate = new Date()
 const selectedDate = ref(null)
@@ -7,55 +9,11 @@ const currentMonth = ref(currentDate.getMonth())
 const currentYear = ref(currentDate.getFullYear())
 const showApodModal = ref(false)
 const selectedApod = ref(null)
+const isLoadingApod = ref(false)
+const apodError = ref(null)
 
-// Hardcoded APOD data for different dates
-const apodData = {
-  '2025-09-21': {
-    "date": "2025-09-21",
-    "explanation": "Does the Sun set in the same direction every day? No, the direction of sunset depends on the time of the year. Although the Sun always sets approximately toward the west, on an equinox like today the Sun sets directly toward the west. After tomorrow's September equinox, the Sun will set increasingly toward the southwest, reaching its maximum displacement at the December solstice. Before today's September equinox, the Sun had set toward the northwest, reaching its maximum displacement at the June solstice. The featured time-lapse image shows seven bands of the Sun setting one day each month from 2019 December through 2020 June. These image sequences were taken from Alberta, Canada -- well north of the Earth's equator -- and feature the city of Edmonton in the foreground. The middle band shows the Sun setting during the last equinox -- in March. From this location, the Sun will set along this same equinox band again tomorrow.",
-    "hdurl": "https://apod.nasa.gov/apod/image/2509/SunsetMonths_Vanzella_2400.jpg",
-    "media_type": "image",
-    "service_version": "v1",
-    "title": "Equinox Sunset",
-    "url": "https://apod.nasa.gov/apod/image/2509/SunsetMonths_Vanzella_1080.jpg"
-  },
-  '2025-09-20': {
-    "date": "2025-09-20",
-    "explanation": "In this stunning view from the International Space Station, Earth's terminator—the boundary between day and night—creates a dramatic line across our planet. The thin blue line of our atmosphere glows brilliantly against the black of space, while city lights twinkle below in the darkness. This perspective reminds us of our planet's fragility and beauty as it orbits through the cosmos.",
-    "hdurl": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=1200&h=800&fit=crop",
-    "media_type": "image",
-    "service_version": "v1",
-    "title": "Earth's Terminator from Space",
-    "url": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=800&h=600&fit=crop"
-  },
-  '2025-09-19': {
-    "date": "2025-09-19",
-    "explanation": "The Orion Nebula, also known as M42, is one of the brightest nebulae visible to the naked eye. Located in the constellation Orion, this stellar nursery is where new stars are born from clouds of gas and dust. The nebula's distinctive shape and vibrant colors make it a favorite target for both amateur and professional astronomers. The trapezium cluster at its heart illuminates the surrounding gas with intense ultraviolet radiation.",
-    "hdurl": "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=1200&h=800&fit=crop",
-    "media_type": "image",
-    "service_version": "v1",
-    "title": "The Great Orion Nebula",
-    "url": "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=800&h=600&fit=crop"
-  },
-  '2025-09-18': {
-    "date": "2025-09-18",
-    "explanation": "Saturn's magnificent ring system has captivated observers for centuries. Composed primarily of water ice particles ranging from tiny grains to house-sized chunks, the rings are divided into several distinct sections. The Cassini spacecraft revealed intricate details of these rings, including spokes, braided patterns, and shepherd moons that help maintain the ring structure. This view shows Saturn in all its glory, a true jewel of our solar system.",
-    "hdurl": "https://images.unsplash.com/photo-1614314107768-6018061b5b72?w=1200&h=800&fit=crop",
-    "media_type": "image",
-    "service_version": "v1",
-    "title": "Saturn and Its Rings",
-    "url": "https://images.unsplash.com/photo-1614314107768-6018061b5b72?w=800&h=600&fit=crop"
-  },
-  '2025-09-17': {
-    "date": "2025-09-17",
-    "explanation": "The Milky Way galaxy stretches across the night sky in this breathtaking panoramic view. Our home galaxy contains over 100 billion stars, and from our position within one of its spiral arms, we see it edge-on as a luminous band crossing the sky. Dark lanes of cosmic dust block some of the light from distant stars, creating the intricate patterns visible in this image. The galactic center, located in the constellation Sagittarius, glows brightly in the distance.",
-    "hdurl": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1200&h=800&fit=crop",
-    "media_type": "image",
-    "service_version": "v1",
-    "title": "The Milky Way Galaxy",
-    "url": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800&h=600&fit=crop"
-  }
-}
+// Use APOD composables
+const { isValidApodDate, formatDisplayDate } = useApodDates()
 
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -108,28 +66,51 @@ const nextMonth = () => {
   }
 }
 
-const selectDate = (day) => {
+const selectDate = async (day) => {
   if (!day) return
 
   const dateString = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  selectedDate.value = dateString
 
-  // Check if we have APOD data for this date
-  if (apodData[dateString]) {
-    selectedApod.value = apodData[dateString]
+  // Validate the date
+  if (!isValidApodDate(dateString)) {
+    apodError.value = 'APOD data is only available from June 16, 1995 to today'
+    return
+  }
+
+  selectedDate.value = dateString
+  isLoadingApod.value = true
+  apodError.value = null
+
+  console.log('Fetching APOD for date:', dateString)
+
+  // Call NASA API directly
+  try {
+    const data = await nasaApiService.fetchApod(dateString)
+    console.log('APOD data received:', data)
+
+    selectedApod.value = data
     showApodModal.value = true
+    isLoadingApod.value = false
+  } catch (err) {
+    console.error('Error fetching APOD:', err)
+    apodError.value = err.message || 'Failed to load APOD data'
+    isLoadingApod.value = false
   }
 }
 
 const closeModal = () => {
   showApodModal.value = false
   selectedApod.value = null
+  selectedDate.value = null
+  apodError.value = null
 }
 
 const hasApodData = (day) => {
   if (!day) return false
   const dateString = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  return !!apodData[dateString]
+
+  // Check if date is within valid APOD range (June 16, 1995 - today)
+  return isValidApodDate(dateString)
 }
 
 const isToday = (day) => {
@@ -164,8 +145,19 @@ const isToday = (day) => {
       </div>
 
       <p class="calendar-subtitle">
-        Click on a highlighted date to view the Astronomy Picture of the Day
+        Click on any date to view the Astronomy Picture of the Day (Available from June 16, 1995)
       </p>
+
+      <!-- Error Message -->
+      <div v-if="apodError" class="error-message">
+        {{ apodError }}
+      </div>
+
+      <!-- Loading Message -->
+      <div v-if="isLoadingApod" class="loading-message">
+        <div class="spinner"></div>
+        Loading APOD data...
+      </div>
     </div>
 
     <!-- Calendar Grid -->
@@ -188,7 +180,7 @@ const isToday = (day) => {
             'selected': selectedDate === `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           }"
           @click="selectDate(day)"
-          :disabled="!day || !hasApodData(day)"
+          :disabled="!day"
         >
           <span v-if="day">{{ day }}</span>
           <div v-if="hasApodData(day)" class="apod-indicator"></div>
@@ -243,3 +235,52 @@ const isToday = (day) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Loading and Error Messages */
+.loading-message,
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.loading-message {
+  background: rgba(var(--plasma-cyan), 0.1);
+  border: 1px solid var(--plasma-cyan);
+  color: var(--plasma-cyan);
+}
+
+.error-message {
+  background: rgba(var(--solar-orange), 0.1);
+  border: 1px solid var(--solar-orange);
+  color: var(--solar-orange);
+}
+
+/* Update calendar day styling for all valid dates */
+.calendar-day.has-apod {
+  background: rgba(var(--aurora-green), 0.2);
+  border-color: var(--aurora-green);
+}
+
+.calendar-day.has-apod:hover {
+  background: rgba(var(--aurora-green), 0.3);
+  transform: translateY(-2px);
+}
+
+/* Disable styling for dates outside APOD range */
+.calendar-day:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.calendar-day:disabled:hover {
+  transform: none;
+  background: transparent;
+}
+</style>
