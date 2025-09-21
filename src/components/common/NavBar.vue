@@ -41,7 +41,7 @@ const isDropdownOpen = (dropdownId) => {
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-header">
-        <a href="#" class="nav-brand">NASA Space Explorer</a>
+        <router-link to="/" class="nav-brand">NASA Space Explorer</router-link>
         <!-- Burger Menu Button (Mobile Only) -->
         <button
           class="burger-menu"
@@ -62,9 +62,9 @@ const isDropdownOpen = (dropdownId) => {
             <span class="dropdown-arrow" :class="{ 'open': isDropdownOpen('apod') }">▼</span>
           </a>
           <div class="dropdown-menu" :class="{ 'mobile-open': isDropdownOpen('apod') }">
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Daily Picture</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Archive Browser</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Date Search</a>
+            <router-link to="/apod/daily" class="dropdown-item" @click="closeMobileMenu">Daily Picture</router-link>
+            <router-link to="/apod/archive" class="dropdown-item" @click="closeMobileMenu">Archive Browser</router-link>
+            <router-link to="/apod/search" class="dropdown-item" @click="closeMobileMenu">Date Search</router-link>
           </div>
         </li>
         <li class="nav-item">
@@ -73,9 +73,9 @@ const isDropdownOpen = (dropdownId) => {
             <span class="dropdown-arrow" :class="{ 'open': isDropdownOpen('mars') }">▼</span>
           </a>
           <div class="dropdown-menu" :class="{ 'mobile-open': isDropdownOpen('mars') }">
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Rover Dashboard</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Photo Gallery</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Camera Filters</a>
+            <router-link to="/mars/dashboard" class="dropdown-item" @click="closeMobileMenu">Rover Dashboard</router-link>
+            <router-link to="/mars/gallery" class="dropdown-item" @click="closeMobileMenu">Photo Gallery</router-link>
+            <router-link to="/mars/filters" class="dropdown-item" @click="closeMobileMenu">Camera Filters</router-link>
           </div>
         </li>
         <li class="nav-item">
@@ -84,9 +84,9 @@ const isDropdownOpen = (dropdownId) => {
             <span class="dropdown-arrow" :class="{ 'open': isDropdownOpen('neo') }">▼</span>
           </a>
           <div class="dropdown-menu" :class="{ 'mobile-open': isDropdownOpen('neo') }">
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Asteroid Dashboard</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Data Table</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Hazard Tracker</a>
+            <router-link to="/neo/dashboard" class="dropdown-item" @click="closeMobileMenu">Asteroid Dashboard</router-link>
+            <router-link to="/neo/data" class="dropdown-item" @click="closeMobileMenu">Data Table</router-link>
+            <router-link to="/neo/hazards" class="dropdown-item" @click="closeMobileMenu">Hazard Tracker</router-link>
           </div>
         </li>
         <li class="nav-item">
@@ -95,8 +95,8 @@ const isDropdownOpen = (dropdownId) => {
             <span class="dropdown-arrow" :class="{ 'open': isDropdownOpen('epic') }">▼</span>
           </a>
           <div class="dropdown-menu" :class="{ 'mobile-open': isDropdownOpen('epic') }">
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Earth Viewer</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Timelapse Player</a>
+            <router-link to="/epic/viewer" class="dropdown-item" @click="closeMobileMenu">Earth Viewer</router-link>
+            <router-link to="/epic/timelapse" class="dropdown-item" @click="closeMobileMenu">Timelapse Player</router-link>
           </div>
         </li>
         <li class="nav-item">
@@ -105,9 +105,9 @@ const isDropdownOpen = (dropdownId) => {
             <span class="dropdown-arrow" :class="{ 'open': isDropdownOpen('events') }">▼</span>
           </a>
           <div class="dropdown-menu" :class="{ 'mobile-open': isDropdownOpen('events') }">
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Event Map</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Event List</a>
-            <a href="#" class="dropdown-item" @click="closeMobileMenu">Event Filters</a>
+            <router-link to="/events/map" class="dropdown-item" @click="closeMobileMenu">Event Map</router-link>
+            <router-link to="/events/list" class="dropdown-item" @click="closeMobileMenu">Event List</router-link>
+            <router-link to="/events/filters" class="dropdown-item" @click="closeMobileMenu">Event Filters</router-link>
           </div>
         </li>
       </ul>
